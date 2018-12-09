@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import sys
+sys.path.insert(0, '../')
+
 from sklearn.metrics import confusion_matrix
 #from plotcm import plot_confusion_matrix
 
