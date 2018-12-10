@@ -20,14 +20,20 @@ import pdb
 
 from CNN_classes import Network
 
-num_epochs = 200
+num_epochs = 10
 
 torch.set_printoptions(linewidth=120)
 
-network = Network()
+network = Network().cuda()
 
 criterion = nn.BCELoss()
 optimizer = optim.Adam(network.parameters())
+
+save = False
+
+device = torch.device("cuda:0")
+if device:
+    print(device)
 
 def hot_ones(labels, size):
     return torch.as_tensor(
@@ -37,14 +43,18 @@ def hot_ones(labels, size):
     )
 
 def train_network(optimizer, datas, labels):
+
+    #datas.to(device)
+    #labels.to(device)
+
     # set optimizer back to zero
     optimizer.zero_grad()
 
     #prediction step
-    prediction = network(datas)
+    prediction = network(datas.cuda())
 
     #loss computation and backpropagation
-    target_labels = hot_ones(labels, 10)
+    target_labels = hot_ones(labels, 10).cuda()
     error = criterion(prediction, target_labels)
     error.backward()
 
@@ -68,12 +78,18 @@ if __name__ == "__main__":
         ,shuffle=True
     )
 
+    error_mean = 0
     for epoch in range(num_epochs):
+        error_mean = 0
         for n_batch, batch in enumerate(train_loader):
+
             datas, labels = batch
             error = train_network(optimizer, datas, labels)
-            if n_batch == 40:
-                print(" At epoch ", epoch, "and batch ", n_batch, " we get the error ", error)
 
-    torch.save(network.state_dict(), './models/fashionMNIST')
+            error_mean += error.item()
+
+        error_mean = error_mean/60
+        print(" At the end of epoch ", epoch," we get the error ", error_mean)
+    if save:
+        torch.save(network.state_dict(), '../models/fashionMNIST')
 
